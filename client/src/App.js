@@ -14,11 +14,11 @@ function App() {
               <p className="auth-subtitle">Enterprise QR Code Generator</p>
             </div>
             <div className="auth-content">
-              <SignIn routing="hash" />
+          <SignIn routing="hash" />
               <div className="auth-divider">
                 <span>or</span>
               </div>
-              <SignUp routing="hash" />
+          <SignUp routing="hash" />
             </div>
             <div className="auth-features">
               <div className="feature-item">

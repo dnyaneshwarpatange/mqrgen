@@ -94,7 +94,7 @@ router.post('/bulk-upload', checkUsageLimit(1000), upload.single('file'), async 
     
     const limit = planLimits[userPlan];
     
-    // Parse file based on type
+      // Parse file based on type
     let data = [];
     const fileExtension = req.file.originalname.split('.').pop().toLowerCase();
     
@@ -121,7 +121,7 @@ router.post('/bulk-upload', checkUsageLimit(1000), upload.single('file'), async 
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       
       if (jsonData.length === 0) {
-        return res.status(400).json({
+        return res.status(400).json({ 
           success: false,
           error: {
             code: 'VALIDATION_ERROR',

@@ -10,25 +10,11 @@ const Coupon = require('../models/Coupon');
 
 const router = express.Router();
 
-// Initialize Razorpay (temporarily disabled for development)
-// const razorpay = new Razorpay({
-//   key_id: process.env.RAZORPAY_KEY_ID,
-//   key_secret: process.env.RAZORPAY_KEY_SECRET
-// });
-
-// Mock Razorpay for development
-const razorpay = {
-  orders: {
-    create: async (options) => {
-      return {
-        id: `order_${Date.now()}_mock`,
-        amount: options.amount,
-        currency: options.currency,
-        receipt: options.receipt
-      };
-    }
-  }
-};
+// Initialize Razorpay with real credentials from .env
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 // Get subscription plans
 router.get('/plans', asyncHandler(async (req, res) => {
