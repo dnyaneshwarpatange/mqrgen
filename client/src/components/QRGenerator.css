@@ -1,0 +1,265 @@
+/* QR Generator Specific Styles */
+.qr-generator {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+.form-section {
+  padding-right: 2rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.styling-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.preview-section {
+  padding-left: 2rem;
+  border-left: 1px solid #e5e7eb;
+}
+
+.qr-preview {
+  text-align: center;
+}
+
+.qr-image-container {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.qr-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.qr-info {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #374151;
+  min-width: 80px;
+}
+
+.info-value {
+  color: #6b7280;
+  text-align: right;
+  word-break: break-all;
+}
+
+.content-text {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.qr-actions .btn {
+  min-width: 140px;
+}
+
+.qr-placeholder {
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.placeholder-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.placeholder-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.placeholder-hint {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* Card Icon */
+.card-icon {
+  margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .form-section {
+    padding-right: 1rem;
+  }
+  
+  .preview-section {
+    padding-left: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-section {
+    padding-right: 0;
+    margin-bottom: 2rem;
+  }
+  
+  .preview-section {
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 2rem;
+  }
+  
+  .qr-actions {
+    flex-direction: column;
+  }
+  
+  .qr-actions .btn {
+    width: 100%;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .info-value {
+    text-align: left;
+  }
+  
+  .content-text {
+    max-width: none;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .qr-image-container {
+    padding: 1rem;
+  }
+  
+  .qr-info {
+    padding: 1rem;
+  }
+  
+  .qr-placeholder {
+    padding: 2rem 1rem;
+  }
+  
+  .placeholder-icon {
+    font-size: 3rem;
+  }
+}
+
+/* Animation for QR generation */
+.qr-preview {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hover effects */
+.qr-image-container:hover {
+  border-color: #2563eb;
+  box-shadow: 0 8px 15px -3px rgba(37, 99, 235, 0.1);
+  transition: all 0.2s;
+}
+
+.qr-placeholder:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  transition: all 0.2s;
+}
+
+/* Form validation styles */
+.form-input:invalid {
+  border-color: #ef4444;
+}
+
+.form-input:invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Loading state for preview */
+.preview-section.loading {
+  justify-content: center;
+} 
