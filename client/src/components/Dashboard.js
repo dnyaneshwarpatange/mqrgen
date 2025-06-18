@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import QRGenerator from './QRGenerator';
 import BulkUpload from './BulkUpload';
-import Analytics from './Analytics';
 import Settings from './Settings';
 import Subscription from './Subscription';
 import './Dashboard.css';
@@ -17,7 +16,6 @@ const Dashboard = () => {
   const tabs = [
     { id: 'generate', label: 'Generate QR', icon: '🔗' },
     { id: 'bulk', label: 'Bulk Upload', icon: '📁' },
-    { id: 'analytics', label: 'Analytics', icon: '📊' },
     { id: 'subscription', label: 'Plans', icon: '💳' },
     { id: 'settings', label: 'Settings', icon: '⚙️' }
   ];
@@ -51,8 +49,6 @@ const Dashboard = () => {
         return <QRGenerator />;
       case 'bulk':
         return <BulkUpload />;
-      case 'analytics':
-        return <Analytics />;
       case 'subscription':
         return <Subscription />;
       case 'settings':
