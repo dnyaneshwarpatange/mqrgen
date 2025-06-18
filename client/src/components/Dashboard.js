@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import QRGenerator from './QRGenerator';
 import BulkUpload from './BulkUpload';
@@ -10,6 +10,9 @@ import './Dashboard.css';
 const Dashboard = () => {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('generate');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navRef = useRef(null);
+  const toggleRef = useRef(null);
 
   const tabs = [
     { id: 'generate', label: 'Generate QR', icon: '🔗' },
@@ -18,6 +21,29 @@ const Dashboard = () => {
     { id: 'subscription', label: 'Plans', icon: '💳' },
     { id: 'settings', label: 'Settings', icon: '⚙️' }
   ];
+
+  // Handle clicking outside to close mobile menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuOpen && 
+          navRef.current && 
+          !navRef.current.contains(event.target) &&
+          toggleRef.current &&
+          !toggleRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
+
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    setMobileMenuOpen(false); // Close mobile menu when tab is clicked
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -47,16 +73,26 @@ const Dashboard = () => {
           <div className="user-info">
             <span>Welcome, {user?.firstName || user?.username || 'User'}</span>
           </div>
+          <button 
+            ref={toggleRef}
+            className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </button>
         </div>
       </header>
 
       <div className="dashboard-content">
-        <nav className="dashboard-nav">
+        <nav ref={navRef} className={`dashboard-nav ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
               className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
             >
               <span className="tab-icon">{tab.icon}</span>
               <span className="tab-label">{tab.label}</span>

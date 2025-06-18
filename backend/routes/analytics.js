@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateUser } = require('../middleware/auth');
 
 // Mock analytics data generator
 const generateMockAnalytics = (timeRange = '30d') => {
@@ -62,7 +62,7 @@ const generateMockAnalytics = (timeRange = '30d') => {
 };
 
 // Get analytics overview
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateUser, async (req, res) => {
   try {
     const { timeRange = '30d' } = req.query;
     
@@ -114,7 +114,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get QR code specific analytics
-router.get('/qr/:qrCodeId', authenticateToken, async (req, res) => {
+router.get('/qr/:qrCodeId', authenticateUser, async (req, res) => {
   try {
     const { qrCodeId } = req.params;
     
@@ -169,7 +169,7 @@ router.get('/qr/:qrCodeId', authenticateToken, async (req, res) => {
 });
 
 // Get dashboard stats
-router.get('/dashboard', authenticateToken, async (req, res) => {
+router.get('/dashboard', authenticateUser, async (req, res) => {
   try {
     const userPlan = req.user.plan || 'free';
     

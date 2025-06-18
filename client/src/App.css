@@ -147,7 +147,7 @@ body {
 
 .dashboard-content {
   display: flex;
-  min-height: calc(100vh - 80px);
+  
 }
 
 .dashboard-nav {
@@ -190,6 +190,7 @@ body {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+  margin:0rem;
 }
 
 /* Card Styles */
