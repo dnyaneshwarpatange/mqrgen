@@ -10,11 +10,47 @@ const Coupon = require('../models/Coupon');
 
 const router = express.Router();
 
-// Initialize Razorpay with real credentials from .env
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay with proper error handling
+let razorpay;
+try {
+  // Check if we have valid Razorpay keys
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  
+  if (!keyId || keyId === 'rzp_test_your_razorpay_key_here' || 
+      !keySecret || keySecret === 'your_razorpay_secret_here') {
+    console.log('⚠️  Using mock Razorpay (no valid keys configured)');
+    razorpay = {
+      orders: {
+        create: async (options) => ({
+          id: `order_mock_${Date.now()}`,
+          amount: options.amount,
+          currency: options.currency,
+          receipt: options.receipt
+        })
+      }
+    };
+  } else {
+    razorpay = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret
+    });
+    console.log('✅ Razorpay initialized with valid keys');
+  }
+} catch (error) {
+  console.error('❌ Razorpay initialization error:', error);
+  // Create a mock razorpay instance for development
+  razorpay = {
+    orders: {
+      create: async (options) => ({
+        id: `order_mock_${Date.now()}`,
+        amount: options.amount,
+        currency: options.currency,
+        receipt: options.receipt
+      })
+    }
+  };
+}
 
 // Get subscription plans
 router.get('/plans', asyncHandler(async (req, res) => {

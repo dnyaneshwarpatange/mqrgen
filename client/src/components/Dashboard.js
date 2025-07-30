@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import QRGenerator from './QRGenerator';
 import BulkUpload from './BulkUpload';
 import Settings from './Settings';
@@ -8,6 +8,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const { user } = useUser();
+  const { signOut } = useClerk();
   const [activeTab, setActiveTab] = useState('generate');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navRef = useRef(null);
@@ -69,6 +70,7 @@ const Dashboard = () => {
           <div className="user-info">
             <span>Welcome, {user?.firstName || user?.username || 'User'}</span>
           </div>
+          <button className="btn btn-secondary" style={{marginLeft: '1rem'}} onClick={() => signOut()}>Logout</button>
           <button 
             ref={toggleRef}
             className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`}

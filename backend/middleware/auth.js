@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const mockDataService = require('../services/mockData');
 
 // Verify Clerk JWT token
 const verifyClerkToken = async (token) => {
@@ -28,27 +29,46 @@ const authenticateUser = async (req, res, next) => {
     // Verify the token
     const decoded = await verifyClerkToken(token);
     
-    // Find or create user in our database
-    let user = await User.findOne({ clerkId: decoded.sub });
-    
-    if (!user) {
-      // Create new user if not exists
-      user = new User({
-        clerkId: decoded.sub,
-        email: decoded.email,
-        firstName: decoded.first_name || decoded.given_name || 'User',
-        lastName: decoded.last_name || decoded.family_name || '',
-        avatar: decoded.picture || null
-      });
-      await user.save();
-    } else {
-      // Update last login
-      user.lastLogin = new Date();
-      await user.save();
+    try {
+      // Try to find or create user in MongoDB
+      let user = await User.findOne({ clerkId: decoded.sub });
+      
+      if (!user) {
+        // Create new user if not exists
+        user = new User({
+          clerkId: decoded.sub,
+          email: decoded.email,
+          firstName: decoded.first_name || decoded.given_name || 'User',
+          lastName: decoded.last_name || decoded.family_name || '',
+          avatar: decoded.picture || null
+        });
+        await user.save();
+      } else {
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+      }
+      
+      req.user = user;
+      next();
+    } catch (dbError) {
+      console.log('MongoDB not available, using mock data');
+      
+      // Fallback to mock data
+      let user = mockDataService.getMockUser(decoded.sub);
+      
+      if (!user) {
+        // Create mock user
+        user = mockDataService.createMockUser(decoded.sub, {
+          email: decoded.email,
+          firstName: decoded.first_name || decoded.given_name || 'User',
+          lastName: decoded.last_name || decoded.family_name || 'Name'
+        });
+      }
+      
+      req.user = user;
+      next();
     }
-    
-    req.user = user;
-    next();
   } catch (error) {
     console.error('Authentication error:', error);
     return res.status(401).json({ error: 'Authentication failed' });

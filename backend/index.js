@@ -21,13 +21,33 @@ const { authenticateUser } = require('./middleware/auth');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+// Connect to MongoDB with better error handling
+const connectDB = async () => {
+  try {
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mqrgen';
+    console.log('Attempting to connect to MongoDB...');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Client URL:', process.env.CLIENT_URL);
+    
+    await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('✅ Connected to MongoDB successfully');
+  } catch (err) {
+    console.error('❌ MongoDB connection error:', err.message);
+    console.log('💡 If you don\'t have MongoDB installed, you can:');
+    console.log('   1. Install MongoDB locally');
+    console.log('   2. Use MongoDB Atlas (cloud)');
+    console.log('   3. The app will work with mock data for now');
+    
+    // Continue running the app even if MongoDB fails
+    // The app will use mock data for development
+  }
+};
+
+// Initialize database connection
+connectDB();
 
 // Security middleware
 app.use(helmet({
@@ -47,7 +67,12 @@ app.use(compression());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    process.env.CLIENT_URL
+  ].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

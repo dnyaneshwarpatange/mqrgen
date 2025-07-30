@@ -1,9 +1,12 @@
-import React from 'react';
-import './App.css';
-import { SignedIn, SignedOut, SignIn, SignUp, UserButton } from '@clerk/clerk-react';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { SignedIn, SignedOut, SignIn, SignUp } from '@clerk/clerk-react';
 import Dashboard from './components/Dashboard';
+import './App.css';
 
 function App() {
+  const [authMode, setAuthMode] = useState('signin'); // 'signin' or 'signup'
+
   return (
     <div className="App">
       <SignedOut>
@@ -13,13 +16,31 @@ function App() {
               <h1 className="auth-title">MQRGen</h1>
               <p className="auth-subtitle">Enterprise QR Code Generator</p>
             </div>
-            <div className="auth-content">
-          <SignIn routing="hash" />
-              <div className="auth-divider">
-                <span>or</span>
-              </div>
-          <SignUp routing="hash" />
+            
+            {/* Auth Mode Tabs */}
+            <div className="auth-tabs">
+              <button 
+                className={`auth-tab ${authMode === 'signin' ? 'active' : ''}`}
+                onClick={() => setAuthMode('signin')}
+              >
+                Sign In
+              </button>
+              <button 
+                className={`auth-tab ${authMode === 'signup' ? 'active' : ''}`}
+                onClick={() => setAuthMode('signup')}
+              >
+                Sign Up
+              </button>
             </div>
+
+            <div className="auth-content">
+              {authMode === 'signin' ? (
+                <SignIn routing="hash" />
+              ) : (
+                <SignUp routing="hash" />
+              )}
+            </div>
+
             <div className="auth-features">
               <div className="feature-item">
                 <span className="feature-icon">🔗</span>
@@ -38,7 +59,12 @@ function App() {
         </div>
       </SignedOut>
       <SignedIn>
-        <Dashboard />
+        <Router>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="*" element={<Dashboard />} />
+          </Routes>
+        </Router>
       </SignedIn>
     </div>
   );

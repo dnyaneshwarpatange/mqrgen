@@ -223,23 +223,30 @@ const apiService = new ApiService();
 export default apiService;
 
 // Hook for using API service with auth context
-export const useApiService = () => {
+export const useApi = () => {
   const { getToken } = useAuth();
-  
-  const authenticatedRequest = async (endpoint, options = {}) => {
-    const token = await getToken();
-    
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...options.headers,
-      },
-      ...options,
-    };
 
+  const authenticatedRequest = async (endpoint, options = {}) => {
     try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Authentication failed: Please log in again.');
+      }
+      
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...(options.headers || {}),
+        },
+        ...options,
+      };
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      
+      if (response.status === 401) {
+        throw new Error('Session expired. Please log in again.');
+      }
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -248,73 +255,42 @@ export const useApiService = () => {
       
       return await response.json();
     } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error);
+      console.error('API request failed:', error);
       throw error;
     }
   };
 
   return {
-    // QR Code Management
-    createQRCode: (qrData) => authenticatedRequest('/api/qr/create', {
+    authenticatedRequest,
+    // API methods
+    createQR: (data) => authenticatedRequest('/api/qr/create', {
       method: 'POST',
-      body: JSON.stringify(qrData),
+      body: JSON.stringify(data)
     }),
     
-    getQRCodes: (page = 1, limit = 10, search = '') => {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        ...(search && { search }),
-      });
-      return authenticatedRequest(`/api/qr/list?${params}`);
-    },
-    
-    getQRCodeById: (id) => authenticatedRequest(`/api/qr/${id}`),
-    
-    updateQRCode: (id, qrData) => authenticatedRequest(`/api/qr/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(qrData),
-    }),
-    
-    deleteQRCode: (id) => authenticatedRequest(`/api/qr/${id}`, {
-      method: 'DELETE',
-    }),
-    
-    bulkCreateQRCodes: (bulkData) => authenticatedRequest('/api/qr/bulk-create', {
+    bulkUpload: (formData) => authenticatedRequest('/api/qr/bulk-upload', {
       method: 'POST',
-      body: JSON.stringify(bulkData),
+      body: formData,
+      headers: {} // Let browser set Content-Type for FormData
     }),
     
-    // Analytics
-    getAnalytics: (timeRange = '30d') => authenticatedRequest(`/api/analytics?timeRange=${timeRange}`),
-    
-    getQRCodeAnalytics: (qrCodeId) => authenticatedRequest(`/api/analytics/qr/${qrCodeId}`),
-    
-    getDashboardStats: () => authenticatedRequest('/api/analytics/dashboard'),
-    
-    // Subscription
     getSubscription: () => authenticatedRequest('/api/subscription'),
     
-    createSubscription: (planId) => authenticatedRequest('/api/subscription/create', {
+    createPaymentOrder: (planData) => authenticatedRequest('/api/payments/create-order', {
       method: 'POST',
-      body: JSON.stringify({ planId }),
+      body: JSON.stringify(planData)
     }),
     
-    getSubscriptionPlans: () => authenticatedRequest('/api/subscription/plans'),
+    verifyPayment: (paymentData) => authenticatedRequest('/api/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    }),
     
-    // User
-    getUserProfile: () => authenticatedRequest('/api/user/profile'),
+    getAnalytics: () => authenticatedRequest('/api/analytics'),
     
-    getUserUsage: () => authenticatedRequest('/api/user/usage'),
-    
-    // Utility
-    checkApiHealth: async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/health`);
-        return response.ok;
-      } catch (error) {
-        return false;
-      }
-    },
+    updateProfile: (profileData) => authenticatedRequest('/api/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData)
+    })
   };
 }; 

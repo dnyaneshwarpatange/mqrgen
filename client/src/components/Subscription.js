@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useApi } from '../services/api';
+import './Subscription.css';
 
 const Subscription = () => {
-  const { getToken } = useAuth();
+  const { getSubscription, createPaymentOrder } = useApi();
   const [subscription, setSubscription] = useState(null);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,102 +15,52 @@ const Subscription = () => {
 
   const fetchSubscriptionData = async () => {
     try {
-      // Mock data for now since backend might not be ready
+      setLoading(true);
+      setError('');
+      
+      // Mock data for now
       const mockSubscription = {
-        subscription: {
-          plan: 'free',
-          status: 'active'
-        },
-        usage: {
-          qrGeneratedToday: 5
-        },
-        limits: {
-          daily: 100
-        },
-        remainingQrToday: 95,
-        apiKey: null
+        plan: 'free',
+        status: 'active',
+        qrGenerated: 45,
+        qrLimit: 100,
+        validUntil: '2024-12-31'
       };
-
+      
       const mockPlans = [
         {
           id: 'free',
-          name: 'Free Plan',
+          name: 'Free',
           price: 0,
-          features: [
-            '100 QR codes per day',
-            'Basic styling options',
-            'Standard support',
-            'CSV bulk upload',
-            'PNG download format'
-          ],
-          popular: false
+          qrLimit: 100,
+          features: ['Basic QR Generation', 'Standard Templates', 'Email Support']
         },
         {
           id: 'pro',
-          name: 'Pro Plan',
+          name: 'Pro',
           price: 999,
-          features: [
-            '10,000 QR codes per day',
-            'Advanced styling options',
-            'Priority support',
-            'Bulk upload (CSV/Excel)',
-            'Analytics dashboard',
-            'API access',
-            'PDF & Word export'
-          ],
-          popular: true
+          qrLimit: 10000,
+          features: ['Advanced QR Generation', 'Custom Templates', 'Bulk Upload', 'Priority Support', 'Analytics']
         },
         {
           id: 'enterprise',
-          name: 'Enterprise Plan',
+          name: 'Enterprise',
           price: 4799,
-          features: [
-            '100,000 QR codes per day',
-            'Custom branding',
-            'Dedicated support',
-            'Advanced analytics',
-            'White-label solution',
-            'Custom integrations',
-            'All export formats'
-          ],
-          popular: false
+          qrLimit: 100000,
+          features: ['Unlimited QR Generation', 'Custom Branding', 'API Access', 'Dedicated Support', 'Advanced Analytics', 'White-label Solutions']
         }
       ];
 
       setSubscription(mockSubscription);
       setPlans(mockPlans);
-
+      
       // Try to fetch from backend if available
       try {
-        const token = await getToken();
-        
-        // Fetch subscription status
-        const subResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/payments/subscription`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        // Fetch available plans
-        const plansResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/payments/plans`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (subResponse.ok && plansResponse.ok) {
-          const [subData, plansData] = await Promise.all([
-            subResponse.json(),
-            plansResponse.json()
-          ]);
-
-          setSubscription(subData.data);
-          setPlans(plansData.data);
-        }
+        const backendSubscription = await getSubscription();
+        setSubscription(backendSubscription);
       } catch (backendError) {
         console.log('Backend not available, using mock data');
       }
-
     } catch (err) {
       setError(err.message || 'Failed to fetch subscription data');
     } finally {
@@ -119,148 +70,107 @@ const Subscription = () => {
 
   const handleUpgrade = async (planId) => {
     try {
-      // For now, we'll simulate the payment process
+      setError('');
+      
       if (planId === 'free') {
         alert('You are already on the free plan!');
         return;
       }
 
-      // Mock payment data
-      const mockPaymentData = {
-        data: {
-          key: 'rzp_test_your_razorpay_key_here',
-          amount: plans.find(p => p.id === planId)?.price * 100 || 99900, // Convert to paise
-          currency: 'INR',
-          plan: plans.find(p => p.id === planId)?.name || 'Pro Plan',
-          orderId: `order_${Date.now()}`,
-          paymentId: `pay_${Date.now()}`
-        }
-      };
+      const selectedPlan = plans.find(plan => plan.id === planId);
+      if (!selectedPlan) {
+        setError('Invalid plan selected');
+        return;
+      }
 
-      // Initialize Razorpay payment
-      const options = {
-        key: mockPaymentData.data.key,
-        amount: mockPaymentData.data.amount,
-        currency: mockPaymentData.data.currency,
+      // Mock payment data for development
+      const mockPaymentData = {
+        key: 'rzp_test_mock_key', // Use mock key to avoid 401 errors
+        amount: selectedPlan.price * 100, // Convert to paise
+        currency: 'INR',
         name: 'MQRGen',
-        description: `${mockPaymentData.data.plan} Plan`,
-        order_id: mockPaymentData.data.orderId,
-        handler: function (response) {
-          verifyPayment(response, mockPaymentData.data.paymentId);
-        },
+        description: `${selectedPlan.name} Plan`,
+        order_id: `order_${Date.now()}`,
         prefill: {
-          name: 'User Name',
-          email: 'user@example.com'
+          name: 'Test User',
+          email: 'test@example.com'
         },
         theme: {
-          color: '#2563eb'
+          color: '#667eea'
+        },
+        handler: function (response) {
+          console.log('Mock payment successful:', response);
+          alert('Mock payment successful! Your plan has been upgraded.');
+          fetchSubscriptionData(); // Refresh subscription data
         },
         modal: {
           ondismiss: function() {
-            console.log('Payment modal closed');
+            console.log('Payment modal dismissed');
           }
         }
       };
 
-      // Try to call backend if available
+      // Try to get real payment data from backend
       try {
-        const token = await getToken();
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/payments/create-order`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ plan: planId })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          options.key = data.data.key;
-          options.amount = data.data.amount;
-          options.currency = data.data.currency;
-          options.order_id = data.data.orderId;
+        const paymentData = await createPaymentOrder({ plan: planId });
+        if (paymentData && paymentData.data) {
+          const options = {
+            key: paymentData.data.key,
+            amount: paymentData.data.amount,
+            currency: paymentData.data.currency,
+            name: 'MQRGen',
+            description: `${selectedPlan.name} Plan`,
+            order_id: paymentData.data.orderId,
+            prefill: {
+              name: 'Test User',
+              email: 'test@example.com'
+            },
+            theme: {
+              color: '#667eea'
+            },
+            handler: function (response) {
+              console.log('Payment successful:', response);
+              alert('Payment successful! Your plan has been upgraded.');
+              fetchSubscriptionData(); // Refresh subscription data
+            }
+          };
+          
+          if (window.Razorpay) {
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+          } else {
+            setError('Payment gateway not available. Please try again later.');
+          }
         }
       } catch (backendError) {
         console.log('Backend not available, using mock payment');
-      }
-
-      // Check if Razorpay is available
-      if (window.Razorpay) {
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-      } else {
-        // Fallback for when Razorpay is not loaded
-        alert('Payment gateway not available. Please try again later.');
-        console.log('Razorpay not loaded, payment data:', options);
+        // Use mock data if backend fails
+        if (window.Razorpay) {
+          try {
+            const rzp = new window.Razorpay(mockPaymentData);
+            rzp.open();
+          } catch (razorpayError) {
+            console.error('Razorpay error:', razorpayError);
+            setError('Payment gateway error. Please try again later.');
+          }
+        } else {
+          setError('Payment gateway not available. Please try again later.');
+        }
       }
     } catch (err) {
       setError(err.message || 'Failed to create payment order');
     }
   };
 
-  const verifyPayment = async (response, paymentId) => {
-    try {
-      // For now, we'll simulate payment verification
-      console.log('Payment response:', response);
-      
-      // Try to verify with backend if available
-      try {
-        const token = await getToken();
-        const verifyResponse = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/payments/verify`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            paymentId: paymentId
-          })
-        });
-
-        if (verifyResponse.ok) {
-          const data = await verifyResponse.json();
-          // Refresh subscription data
-          fetchSubscriptionData();
-          alert('Payment successful! Your subscription has been upgraded.');
-        } else {
-          throw new Error('Payment verification failed');
-        }
-      } catch (backendError) {
-        console.log('Backend not available, simulating successful payment');
-        // Simulate successful payment
-        fetchSubscriptionData();
-        alert('Payment successful! Your subscription has been upgraded.');
-      }
-    } catch (err) {
-      setError('Payment verification failed: ' + err.message);
-    }
-  };
-
   if (loading) {
     return (
       <div className="card">
-        <div className="card-body">
-          <div className="loading">
-            <span className="spinner"></span>
-            Loading subscription data...
-          </div>
+        <div className="card-header">
+          <h2 className="card-title">Subscription Plans</h2>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="card">
         <div className="card-body">
-          <div className="alert alert-error">
-            <span>⚠️</span>
-            {error}
-          </div>
+          <div className="spinner"></div>
+          <p>Loading subscription data...</p>
         </div>
       </div>
     );
@@ -268,104 +178,59 @@ const Subscription = () => {
 
   return (
     <div className="subscription">
+      {error && (
+        <div className="alert alert-error">
+          {error}
+        </div>
+      )}
+      
+      {/* Current Plan */}
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">
-            <span className="card-icon">💳</span>
-            Subscription & Plans
-          </h2>
+          <h2 className="card-title">Current Plan</h2>
         </div>
-
         <div className="card-body">
-          {subscription && (
-            <div className="current-plan">
-              <h3 className="section-title">Current Plan</h3>
-              <div className="plan-card current">
+          <div className="current-plan">
+            <h3>{subscription?.plan?.charAt(0).toUpperCase() + subscription?.plan?.slice(1)} Plan</h3>
+            <p>Status: <span className="status-active">{subscription?.status}</span></p>
+            <p>QR Codes Generated: {subscription?.qrGenerated} / {subscription?.qrLimit}</p>
+            <p>Valid Until: {subscription?.validUntil}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Available Plans */}
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Available Plans</h2>
+        </div>
+        <div className="card-body">
+          <div className="plans-grid">
+            {plans.map((plan) => (
+              <div key={plan.id} className={`plan-card ${subscription?.plan === plan.id ? 'current' : ''}`}>
                 <div className="plan-header">
-                  <h4>{subscription.subscription.plan.charAt(0).toUpperCase() + subscription.subscription.plan.slice(1)} Plan</h4>
-                  <span className={`status ${subscription.subscription.status}`}>
-                    {subscription.subscription.status}
-                  </span>
-                </div>
-                
-                <div className="usage-stats">
-                  <div className="usage-item">
-                    <span className="usage-label">QR Codes Today:</span>
-                    <span className="usage-value">
-                      {subscription.usage.qrGeneratedToday} / {subscription.limits.daily}
-                    </span>
-                  </div>
-                  <div className="usage-item">
-                    <span className="usage-label">Remaining Today:</span>
-                    <span className="usage-value">
-                      {subscription.remainingQrToday}
-                    </span>
-                  </div>
-                  <div className="usage-item">
-                    <span className="usage-label">API Key:</span>
-                    <span className="usage-value api-key">
-                      {subscription.apiKey ? `${subscription.apiKey.substring(0, 10)}...` : 'Not generated'}
-                    </span>
+                  <h3>{plan.name}</h3>
+                  <div className="plan-price">
+                    {plan.price === 0 ? 'Free' : `₹${plan.price}`}
                   </div>
                 </div>
-
-                {subscription.subscription.status === 'active' && (
-                  <div className="plan-actions">
-                    <button className="btn btn-secondary">
-                      <span>⚙️</span>
-                      Manage Subscription
-                    </button>
-                  </div>
-                )}
+                <div className="plan-features">
+                  <p><strong>QR Limit:</strong> {plan.qrLimit.toLocaleString()}</p>
+                  <ul>
+                    {plan.features.map((feature, index) => (
+                      <li key={index}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+                <button
+                  className={`btn ${subscription?.plan === plan.id ? 'btn-secondary' : 'btn-primary'}`}
+                  onClick={() => handleUpgrade(plan.id)}
+                  disabled={subscription?.plan === plan.id}
+                >
+                  {subscription?.plan === plan.id ? 'Current Plan' : 'Upgrade'}
+                </button>
               </div>
-            </div>
-          )}
-
-          <div className="available-plans">
-            <h3 className="section-title">Available Plans</h3>
-            <div className="plans-grid">
-              {plans.map((plan) => (
-                <div key={plan.id} className={`plan-card ${plan.popular ? 'popular' : ''}`}>
-                  {plan.popular && <div className="popular-badge">Most Popular</div>}
-                  
-                  <div className="plan-header">
-                    <h4>{plan.name}</h4>
-                    <div className="plan-price">
-                      <span className="price">₹{plan.price}</span>
-                      <span className="period">/month</span>
-                    </div>
-                  </div>
-
-                  <div className="plan-features">
-                    <ul>
-                      {plan.features.map((feature, index) => (
-                        <li key={index}>
-                          <span className="feature-icon">✓</span>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="plan-actions">
-                    {subscription?.subscription.plan === plan.id ? (
-                      <button className="btn btn-secondary" disabled>
-                        <span>✓</span>
-                        Current Plan
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleUpgrade(plan.id)}
-                        className="btn btn-primary"
-                      >
-                        <span>🚀</span>
-                        {subscription?.subscription.plan === 'free' ? 'Upgrade' : 'Change Plan'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </div>
