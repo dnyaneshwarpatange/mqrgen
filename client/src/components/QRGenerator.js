@@ -340,7 +340,7 @@ QR Image URL: ${generatedQR.qrImage.url}
                 <div className="qr-placeholder">
                   <div className="placeholder-icon">🔗</div>
                   <p className="placeholder-text">Your QR code will appear here</p>
-                  <p className="placeholder-hint">Fill in the form and click "Generate QR Code"</p>
+                  <p className="placeholder-hint">Fill in the form and click &quot;Generate QR Code&quot;</p>
                 </div>
               )}
             </div>

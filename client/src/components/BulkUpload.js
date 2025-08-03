@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import * as XLSX from 'xlsx';
-// eslint-disable-next-line import/no-unresolved
 import html2pdf from 'html2pdf.js';
 import './BulkUpload.css';
 

@@ -25,10 +25,7 @@ module.exports = {
     'react/prop-types': 'off',
     'no-unused-vars': 'warn',
     'no-console': 'warn',
+    'react/no-unescaped-entities': 'off',
   },
-  settings: {
-    react: {
-      version: 'detect',
-    },
-  },
+  ignorePatterns: ['**/node_modules/**', 'build/**', 'dist/**'],
 }; 

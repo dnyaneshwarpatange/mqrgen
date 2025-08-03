@@ -8,13 +8,8 @@ class ApiService {
   }
 
   async getAuthToken() {
-    try {
-      // This will be handled by the useApi hook instead
-      return null;
-    } catch (error) {
-      console.error('Failed to get auth token:', error);
-      return null;
-    }
+    // This will be handled by the useApi hook instead
+    return null;
   }
 
   async request(endpoint, options = {}) {

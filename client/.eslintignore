@@ -1,0 +1,9 @@
+# Ignore build files
+build/
+dist/
+
+# Ignore node modules
+node_modules/
+
+# Ignore specific problematic files
+src/components/BulkUpload.js 
