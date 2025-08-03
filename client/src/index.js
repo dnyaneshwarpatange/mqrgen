@@ -8,10 +8,15 @@ import { ClerkProvider } from '@clerk/clerk-react';
 
 const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
 
+// Check if Clerk key is available
+if (!clerkPubKey) {
+  console.warn('REACT_APP_CLERK_PUBLISHABLE_KEY is not set. Authentication will not work.');
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider publishableKey={clerkPubKey || ''}>
       <App />
     </ClerkProvider>
   </React.StrictMode>

@@ -9,8 +9,8 @@ class ApiService {
 
   async getAuthToken() {
     try {
-      const { getToken } = useAuth();
-      return await getToken();
+      // This will be handled by the useApi hook instead
+      return null;
     } catch (error) {
       console.error('Failed to get auth token:', error);
       return null;
